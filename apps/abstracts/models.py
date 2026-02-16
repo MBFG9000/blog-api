@@ -17,7 +17,8 @@ class AbstractBaseModel(Model):
         auto_now=True
     )
     deleted_at = DateTimeField(
-        null=True
+        null=True,
+        blank=True
     )
 
     class Meta:
@@ -31,3 +32,4 @@ class AbstractBaseModel(Model):
         self.deleted_at = django_timezone.now()
         self.save(update_fields=["deleted_at"])
 
+        

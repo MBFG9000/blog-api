@@ -17,7 +17,7 @@ from django.contrib.auth.password_validation import validate_password
 
 # Project modules
 from apps.abstracts.models import AbstractBaseModel
-from apps.auths.validators import validate_email_domain
+from apps.users.validators import validate_email_domain
 
 
 class CustomUserManager(BaseUserManager):
@@ -168,6 +168,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
         verbose_name_plural = "Custom Users"
         ordering = ["-created_at"]
 
-
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
     
 
