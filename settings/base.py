@@ -11,6 +11,7 @@ from settings.conf import *
 BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
 ROOT_URLCONF = 'settings.urls'
 WSGI_APPLICATION = 'settings.wsgi.application'
+AUTH_USER_MODEL = "auths.CustomUser"
 
 # -----------------------------------------------------------
 # Apps
@@ -23,7 +24,11 @@ DJANGO_AND_THIRD_PARTY_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
-PROJECT_APPS = []
+PROJECT_APPS = [
+    'apps.abstracts.apps.AbstractsConfig',
+    'apps.auths.apps.AuthsConfig',
+    'apps.blog.apps.BlogConfig',
+]
 INSTALLED_APPS = DJANGO_AND_THIRD_PARTY_APPS + PROJECT_APPS
 
 # -----------------------------------------------------------
