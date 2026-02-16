@@ -1,7 +1,13 @@
 from django.urls import path
 
-from apps.blog.views import PostAPIView
+from rest_framework.routers import DefaultRouter
+from apps.blog.views import PostViewSet
+
+router = DefaultRouter()
+router.register(r'posts', PostViewSet, basename='posts')
 
 urlpatterns = [
-    path('post', view=PostAPIView.as_view())
+    
 ]
+
+urlpatterns += router.urls
