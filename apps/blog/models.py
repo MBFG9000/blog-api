@@ -1,6 +1,5 @@
 # Python modules
 
-
 # Django modules
 from django.db import models
 from django.db.models import (
@@ -16,7 +15,7 @@ from django.db.models import (
 
 # Project modules
 from apps.abstracts.models import AbstractBaseModel
-from apps.auths.models import CustomUser
+from apps.users.models import CustomUser
 
 class Category(AbstractBaseModel):
     """
@@ -62,9 +61,9 @@ class Post(AbstractBaseModel):
     """
 
     TITLE_MAX_LEN = 200
-    STATUS_DRAFT = 1
+    STATUS_DRAFT = "drft"
     STATUS_DRAFT_LABEL = "draft"
-    STATUS_PUBLISHED = 2
+    STATUS_PUBLISHED = "pub"
     STATUS_PUBLISHED_LABEL = "published"
     TEXT_CHOICES = {
         STATUS_DRAFT: STATUS_DRAFT_LABEL,
@@ -74,7 +73,7 @@ class Post(AbstractBaseModel):
     author = ForeignKey(to=CustomUser, on_delete=CASCADE)
     title = CharField(max_length=TITLE_MAX_LEN)
     slug = SlugField(unique=True)
-    body = TextField
+    body = TextField()
     category = ForeignKey(to=Category, 
     null=True, 
     blank=True, 
@@ -87,5 +86,5 @@ class Post(AbstractBaseModel):
 class Comment(AbstractBaseModel):
     post = ForeignKey(Post, on_delete=CASCADE)
     author = ForeignKey(to=CustomUser, on_delete=CASCADE)
-    body = TextField     
+    body = TextField()     
 

@@ -17,7 +17,7 @@ from django.contrib.auth.password_validation import validate_password
 
 # Project modules
 from apps.abstracts.models import AbstractBaseModel
-from apps.auths.validators import validate_email_domain
+from apps.users.validators import validate_email_domain
 
 
 class CustomUserManager(BaseUserManager):
