@@ -9,6 +9,7 @@ from django.db.models import (
     BooleanField,
     DateTimeField,
     ImageField,
+    TextChoices
 )
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
@@ -110,6 +111,20 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
     FIRST_NAME_MAX_LENGTH = 50
     LAST_NAME_MAX_LENGTH = 50
     PASSWORD_MAX_LENGTH = 254
+    TIMEZONE_MAX_LENGTH = 50
+
+    KZ = "kk"
+    RU = "ru"
+    EN = "en"
+
+    LANGUAGE_CHOICES = (
+        (KZ, "Kazakh"),
+        (RU, "Russian"),
+        (EN, "English")
+    )
+    LANGUAGE_CODES = (
+        KZ, RU, EN
+    ) 
 
     email = EmailField(
         max_length=EMAIL_MAX_LENGTH,
@@ -155,6 +170,16 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
         validators=[validate_password],
         verbose_name="Password",
         help_text="User's hash representation of the password"
+    )
+
+    preferred_language = CharField(
+        default=EN,
+        choices=LANGUAGE_CHOICES
+    )
+
+    timezone = CharField(
+        max_length=TIMEZONE_MAX_LENGTH,
+        default='UTC'
     )
 
     REQUIRED_FIELDS = ["first_name", "last_name"]

@@ -2,7 +2,7 @@ from django.contrib.admin import (
     register,
     ModelAdmin
 )
-from apps.blog.models import Category, Tag, Post, Comment
+from apps.blog.models import Category, Tag, Post, Comment, CategoryTranslations
 
 @register(Post)
 class PostAdmin(ModelAdmin):
@@ -19,3 +19,8 @@ class PostAdmin(ModelAdmin):
 @register(Comment)
 class PostAdmin(ModelAdmin):
     ... 
+
+
+@register(CategoryTranslations)
+class PostAdmin(ModelAdmin):
+    ...

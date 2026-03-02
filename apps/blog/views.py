@@ -1,5 +1,8 @@
 from typing import Any
+from django.http import Http404
 
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import get_language
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
@@ -15,6 +18,7 @@ from  rest_framework.status import (
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT
 )
+from rest_framework.exceptions import NotFound
 
 
 from apps.blog.models import Post, Comment
@@ -36,12 +40,12 @@ class PostViewSet(GenericViewSet):
 
     def list(self, request: DRFRequest, *args: tuple[Any, ...], **kwargs: dict[Any,Any]) -> DRFResponse:
         queryset = self.get_queryset().filter(status=Post.STATUS_PUBLISHED).order_by('-created_at')
-        serializer = PostListSerializer(queryset, many= True)
+        serializer = PostListSerializer(queryset, many= True, context={'request': request})
         return DRFResponse(serializer.data)
     
     def retrieve(self, request: DRFRequest, *args, **kwargs) -> DRFResponse:
         post = self.get_object()  
-        serializer = PostListSerializer(post)
+        serializer = PostListSerializer(post, )
         return DRFResponse(serializer.data)
 
     def create(self, request: DRFRequest, *args: tuple[Any, ...], **kwargs: dict[str, Any]) -> DRFResponse:
@@ -60,13 +64,6 @@ class PostViewSet(GenericViewSet):
             data=PostListSerializer(post).data,
             status=HTTP_201_CREATED
         )
-    
-    def get_permissions(self):
-        if self.action in ['partial_update', 'destroy']:
-            return [IsAuthenticatedOrReadOnly(), IsPostAuthor()]
-        if self.action in ['create', 'comments']:
-            return [IsAuthenticatedOrReadOnly()]
-        return [IsAuthenticatedOrReadOnly()]
 
     def partial_update(self, request: DRFRequest, *args: tuple[Any, ...], **kwargs: dict[str, Any]) -> DRFResponse:
         """Update the User"""
@@ -111,10 +108,25 @@ class PostViewSet(GenericViewSet):
         # POST
         serializer = CommentCreateSerializer(data=request.data)
         if not serializer.is_valid():
+            
             return DRFResponse(
                 data=serializer.errors,
                 status=HTTP_400_BAD_REQUEST
             )
 
         serializer.save(author=request.user, post=post)
-        return DRFResponse(serializer.data, status=HTTP_201_CREATED)
+        return DRFResponse(serializer.data, status=HTTP_201_CREATED)\
+
+    def get_permissions(self):
+        if self.action in ['partial_update', 'destroy']:
+            return [IsAuthenticatedOrReadOnly(), IsPostAuthor()]
+        if self.action in ['create', 'comments']:
+            return [IsAuthenticatedOrReadOnly()]
+        return [IsAuthenticatedOrReadOnly()]
+    
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Http404:
+            raise NotFound(_("Post not found"))

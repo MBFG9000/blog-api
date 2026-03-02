@@ -1,15 +1,22 @@
 from typing import Any
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import AllowAny
+from django.utils.translation import get_language
+from rest_framework.generics import (
+    CreateAPIView,
+    RetrieveUpdateAPIView
+)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request as DRFRequest
 from rest_framework.response import Response as DRFResponse
 from rest_framework.status import HTTP_201_CREATED
 
 from apps.users.models import CustomUser
-from apps.users.serializers import CustomUserRegisterSerializer
-
+from apps.users.serializers import (
+    CustomUserRegisterSerializer,
+    CustomUserLocalizationSerializer
+)
+from apps.abstracts.utils import send_welcome_email
 class CreateUserAPIView(CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserRegisterSerializer
@@ -32,9 +39,18 @@ class CreateUserAPIView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         tokens = self.get_tokens_for_user(user)
+
+        send_welcome_email(user)
+
         return DRFResponse(
             {**serializer.data, **tokens}, status=HTTP_201_CREATED
         )
 
+class RetrieveUpdateUser(RetrieveUpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserLocalizationSerializer
+    permission_classes = [IsAuthenticated,]
 
+    def get_object(self):
+        return self.request.user
 
