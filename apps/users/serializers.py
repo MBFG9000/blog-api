@@ -1,8 +1,11 @@
+from zoneinfo import available_timezones
+
 from rest_framework.serializers import (
     ModelSerializer,
     CharField,
     ValidationError
 )
+
 from apps.users.models import CustomUser
 
 class CustomUserRegisterSerializer(ModelSerializer):    
@@ -42,3 +45,26 @@ class CustomUserRegisterSerializer(ModelSerializer):
         user.save()
         
         return user
+
+class CustomUserLocalizationSerializer(ModelSerializer):
+    """
+    Serializer that used in RetrieveUpdateView for requesting and patching 
+    localization info
+    """
+    class Meta:
+        """
+        Serializer meta class
+        """
+        model = CustomUser
+        fields = [
+            'preferred_language',
+            'timezone'
+        ]
+
+    def validate_timezone(self, value :str) -> str:
+        """Validates timezone value"""
+        if value not in available_timezones():
+            raise ValidationError(f"Invalid timezone: {value}")
+        
+        return value
+    

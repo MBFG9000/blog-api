@@ -1,5 +1,9 @@
-from typing import Any
+from typing import Any, Optional
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
+from django.utils.translation import get_language
+from django.utils.translation import gettext_lazy as _
 from rest_framework.serializers import (
     ModelSerializer,
     Serializer,
@@ -10,8 +14,16 @@ from rest_framework.serializers import (
     ListField,
     ChoiceField
 )
+from rest_framework.request import Request as DRFRequest
+from babel.dates import format_datetime
 
-from apps.blog.models import Post, Category, Tag, Comment
+from apps.blog.models import (
+    Post,
+    Category, 
+    Tag, 
+    Comment,
+    CategoryTranslations
+)
 from apps.abstracts.serializers import CustomUserForeignSerializer
 
 class PostBaseSerializer(ModelSerializer):
@@ -26,12 +38,27 @@ class PostBaseSerializer(ModelSerializer):
         model = Post
         fields = "__all__"
 
+class CategorySerializer(Serializer):
+    name = SerializerMethodField()
+    slug = CharField()
+    
+    def get_name(self,obj: Category) -> str:
+        language = get_language()
+        translation = obj.translations.filter(language=language).first()
+        
+        if translation:
+            return translation.name
+        
+        return obj.name
+
 class PostListSerializer(PostBaseSerializer):
 
     author = CustomUserForeignSerializer()
     status = SerializerMethodField()
     tags = StringRelatedField(many=True, read_only = True)
-    category = StringRelatedField(read_only=True)
+    category = CategorySerializer()
+    created_at = SerializerMethodField()
+    updated_at = SerializerMethodField()
     
     class Meta:
         model = Post
@@ -45,13 +72,34 @@ class PostListSerializer(PostBaseSerializer):
             'body',
             'status',
             'author',
+            'created_at',
             'updated_at'
         ]
 
     def get_status(self, obj) -> str:
         return obj.get_status_display()
     
+    def format_local_datetime(self, dt:datetime, request:Optional[DRFRequest] = None):
+        lang = get_language() 
+        if request and hasattr(request, 'user') and request.user.is_authenticated:
+            tz_str = request.user.timezone 
+        else:
+            tz_str = 'UTC'
+        
+        tz = ZoneInfo(tz_str)
+        localized = dt.astimezone(tz)
+        
+        return format_datetime(localized, format='long', locale=lang)
+
+    def get_created_at(self, obj):
+        request = self.context.get('request')
+        return self.format_local_datetime(obj.created_at, request)
     
+    def get_updated_at(self, obj):
+        request = self.context.get('request')
+        return self.format_local_datetime(obj.updated_at, request)
+
+
 class PostCreateSerializer(PostBaseSerializer):
     """
     Serializer for Post instances
@@ -145,7 +193,7 @@ class PostUpdateSerializer(PostBaseSerializer):
         category = Category.objects.filter(name=value).first()
 
         if not category:
-            raise ValidationError(f"Category '{value}' does not exist.")
+            raise ValidationError(_(f"Category '{value}' does not exist.") % {value})
         
         return category
     
@@ -213,4 +261,3 @@ class CommentCreateSerializer(CommentBaseSerializer):
             'body'
         ]
 
-    

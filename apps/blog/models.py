@@ -48,7 +48,21 @@ class Category(AbstractBaseModel):
             self.slug = slug
         super().save(*args, **kwargs)
 
+class CategoryTranslations(AbstractBaseModel):
+    """
+    Translations of Categories
+    """
+    orig_category = ForeignKey(Category, related_name='translations', on_delete=CASCADE)
+    language = CharField(max_length=10, choices=CustomUser.LANGUAGE_CHOICES)
+    name = CharField(max_length=255)
 
+    class Meta:
+        unique_together = ('orig_category', 'language')
+
+    def __str__(self) -> str:
+        """Returns the string representation of the translation category"""
+        return f"{self.orig_category}-{self.name}"
+    
 class Tag(AbstractBaseModel):
     """
     Tag model represents tags that associated  with post
