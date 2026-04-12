@@ -115,7 +115,7 @@ class PostViewSet(GenericViewSet):
             )
 
         serializer.save(author=request.user, post=post)
-        return DRFResponse(serializer.data, status=HTTP_201_CREATED)\
+        return DRFResponse(serializer.data, status=HTTP_201_CREATED)
 
     def get_permissions(self):
         if self.action in ['partial_update', 'destroy']:

@@ -70,3 +70,5 @@ def UserLanguageMiddleware(get_response: Callable) -> Callable:
         return response
     
     return middleware
+
+
