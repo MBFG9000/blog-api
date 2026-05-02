@@ -1,6 +1,40 @@
 from datetime import timedelta
 from decouple import config
 
+
+# --------------------------------------------
+# Redis Variables
+#
+REDIS_HOST = config(
+    "REDIS_HOST",
+    cast=str,
+)
+
+REDIS_PORT = config(
+    "REDIS_PORT",
+    cast=str,
+)
+
+REDIS_DB = config(
+    "REDIS_DB",
+    cast=str,
+)
+
+REDIS_PASSWORD = config(
+    "REDIS_PASSWORD",
+    cast=str,
+)
+
+REDIS_USERNAME = config(
+    "REDIS_USERNAME",
+    cast=str,
+)
+
+REDIS_URL = (
+    f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+)
+
+
 # -------------------------------
 # Env id
 #
@@ -20,8 +54,13 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema', 
 }
+
+# -------------------------------
+# DJANGO REST FRAMEWORK SIMPLEJWT
+# 
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=100),
@@ -67,4 +106,18 @@ SIMPLE_JWT = {
     "CHECK_REVOKE_TOKEN": False,
     "REVOKE_TOKEN_CLAIM": "hash_password",
     "CHECK_USER_IS_ACTIVE": True,
+}
+
+# -------------------------------
+# DJANGO CHANNELS
+# 
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [REDIS_URL],
+            "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
 }

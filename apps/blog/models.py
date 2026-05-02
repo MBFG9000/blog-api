@@ -137,7 +137,7 @@ class Post(AbstractBaseModel):
 
 
 class Comment(AbstractBaseModel):
-    post = ForeignKey(Post, on_delete=CASCADE)
-    author = ForeignKey(to=CustomUser, on_delete=CASCADE)
+    post = ForeignKey(Post, on_delete=CASCADE, related_name='post')
+    author = ForeignKey(to=CustomUser, on_delete=CASCADE, related_name='author')
     body = TextField()     
 

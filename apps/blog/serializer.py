@@ -2,6 +2,8 @@ from typing import Any, Optional
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer, BaseChannelLayer
 from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 from rest_framework.serializers import (
@@ -151,7 +153,6 @@ class PostCreateSerializer(PostBaseSerializer):
         category = validated_data.pop('category', None)
 
         post = Post.objects.create(**validated_data, category=category)
-
         if tags:
             post.tags.set(tags)
 
@@ -260,4 +261,27 @@ class CommentCreateSerializer(CommentBaseSerializer):
         fields = [
             'body'
         ]
+    
+    def create(self, validated_data: dict[Any, Any]) -> Comment:
+        
+        comment = Comment.objects.create(**validated_data)
+        post = comment.post
+
+        channel_layer:BaseChannelLayer|None = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"post_{comment.post.slug}", {
+                "type": "post.comment",
+                "message": {
+                    "comment_id": comment.id,
+                    "author": comment.author.respresent_with_email(),
+                    "post": str(comment.body),
+                    "created_at": str(comment.created_at)
+                }
+            }
+        )
+       
+        return comment
+
+
+
 

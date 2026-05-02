@@ -196,4 +196,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
-
+    def respresent_with_email(self):
+        return {
+            "author_id" : self.id,
+            "email": self.email,
+        }
